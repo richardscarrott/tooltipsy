@@ -1,30 +1,34 @@
 /* tooltipsy by Brian Cray
- * Lincensed under GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
- * Option quick reference:
- * - alignTo: "element" or "cursor" (Defaults to "element")
- * - offset: Tooltipsy distance from element or mouse cursor, dependent on alignTo setting. Set as array [x, y] (Defaults to [0, -1])
- * - content: HTML or text content of tooltip. Defaults to "" (empty string), which pulls content from target element's title attribute
- * - show: function(event, tooltip) to show the tooltip. Defaults to a show(100) effect
- * - hide: function(event, tooltip) to hide the tooltip. Defaults to a fadeOut(100) effect
- * - delay: A delay in milliseconds before showing a tooltip. Set to 0 for no delay. Defaults to 200
- * - css: object containing CSS properties and values. Defaults to {} to use stylesheet for styles
- * - className: DOM class for styling tooltips with CSS. Defaults to "tooltipsy"
- * - showEvent: Set a custom event to bind the show function. Defaults to mouseenter
- * - hideEvent: Set a custom event to bind the show function. Defaults to mouseleave
- * Method quick reference:
- * - $('element').data('tooltipsy').show(): Force the tooltip to show
- * - $('element').data('tooltipsy').hide(): Force the tooltip to hide
- * - $('element').data('tooltipsy').destroy(): Remove tooltip from DOM
- * More information visit http://tooltipsy.com/
- */
- 
-(function($){
+* Lincensed under GPL2 - http://www.gnu.org/licenses/gpl-2.0.html
+*
+* Modified by Richard Scarrott - https://github.com/richardscarrott/tooltipsy
+*
+* Option quick reference:
+* - alignTo: "element" or "cursor" (Defaults to "element")
+* - offset: Tooltipsy distance from element or mouse cursor, dependent on alignTo setting. Set as array [x, y] (Defaults to [0, -1])
+* - content: HTML or text content of tooltip. Defaults to "" (empty string), which pulls content from target element's title attribute
+* - show: function(event, tooltip) to show the tooltip. Defaults to a show(100) effect
+* - hide: function(event, tooltip) to hide the tooltip. Defaults to a fadeOut(100) effect
+* - delay: A delay in milliseconds before showing a tooltip. Set to 0 for no delay. Defaults to 200
+* - css: object containing CSS properties and values. Defaults to {} to use stylesheet for styles
+* - className: DOM class for styling tooltips with CSS. Defaults to "tooltipsy"
+* - showEvent: Set a custom event to bind the show function. Defaults to mouseenter
+* - hideEvent: Set a custom event to bind the show function. Defaults to mouseleave
+* - dynamicContent: Set to true if content should be evaluated upon every show
+* Method quick reference:
+* - $('element').data('tooltipsy').show(): Force the tooltip to show
+* - $('element').data('tooltipsy').hide(): Force the tooltip to hide
+* - $('element').data('tooltipsy').destroy(): Remove tooltip from DOM
+* More information visit http://tooltipsy.com/
+*/
+
+(function ($) {
     $.tooltipsy = function (el, options) {
         this.options = options;
         this.$el = $(el);
         this.title = this.$el.attr('title') || '';
         this.$el.attr('title', '');
-        this.random = parseInt(Math.random()*10000);
+        this.random = parseInt(Math.random() * 10000);
         this.ready = false;
         this.shown = false;
         this.width = 0;
@@ -42,7 +46,7 @@
         base.settings.delay = parseInt(base.settings.delay);
 
         if (typeof base.settings.content === 'function') {
-            base.readify(); 
+            base.readify();
         }
 
         if (base.settings.showEvent === base.settings.hideEvent && base.settings.showEvent === 'click') {
@@ -98,6 +102,10 @@
             base.readify();
         }
 
+        if (base.settings.dynamicContent) {
+            base.insertContent();
+        }
+
         if (base.shown === false) {
             if ((function (o) {
                 var s = 0, k;
@@ -116,11 +124,11 @@
 
         if (base.settings.alignTo === 'cursor' && e) {
             var tip_position = [e.pageX + base.settings.offset[0], e.pageY + base.settings.offset[1]];
-            if(tip_position[0] + base.width > $(window).width()) {
-                var tip_css = {top: tip_position[1] + 'px', right: tip_position[0] + 'px', left: 'auto'};
+            if (tip_position[0] + base.width > $(window).width()) {
+                var tip_css = { top: tip_position[1] + 'px', right: tip_position[0] + 'px', left: 'auto' };
             }
             else {
-                var tip_css = {top: tip_position[1] + 'px', left: tip_position[0] + 'px', right: 'auto'};
+                var tip_css = { top: tip_position[1] + 'px', left: tip_position[0] + 'px', right: 'auto' };
             }
         }
         else {
@@ -149,7 +157,7 @@
                 })(base.offset(base.$el[0]))
             ];
         }
-        base.$tipsy.css({top: tip_position[1] + 'px', left: tip_position[0] + 'px'});
+        base.$tipsy.css({ top: tip_position[1] + 'px', left: tip_position[0] + 'px' });
         base.settings.show(e, base.$tipsy.stop(true, true));
     };
 
@@ -176,10 +184,14 @@
         this.ready = true;
         this.$tipsy = $('<div id="tooltipsy' + this.random + '" class="' + this.settings.className + '" style="position:absolute;z-index:2147483647;display:none">').appendTo('body');
         this.$tipsy.data('rootel', this.$el);
+        this.insertContent();
+    };
+
+    $.tooltipsy.prototype.insertContent = function () {
         var e = this.$el;
         var t = this.$tipsy;
         this.$tipsy.html(this.settings.content != '' ? (typeof this.settings.content == 'string' ? this.settings.content : this.settings.content(e, t)) : this.title);
-    };
+    }
 
     $.tooltipsy.prototype.offset = function (el) {
         var ol = ot = 0;
@@ -191,7 +203,7 @@
                 }
             } while (el = el.offsetParent);
         }
-        return {left : ol, top : ot};
+        return { left: ol, top: ot };
     };
 
     $.tooltipsy.prototype.destroy = function () {
@@ -213,11 +225,12 @@
         className: 'tooltipsy',
         delay: 200,
         showEvent: 'mouseenter',
-        hideEvent: 'mouseleave'
+        hideEvent: 'mouseleave',
+        dynamicContent: false
     };
 
-    $.fn.tooltipsy = function(options) {
-        return this.each(function() {
+    $.fn.tooltipsy = function (options) {
+        return this.each(function () {
             new $.tooltipsy(this, options);
         });
     };
