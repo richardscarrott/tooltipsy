@@ -182,7 +182,7 @@
 
     $.tooltipsy.prototype.readify = function () {
         this.ready = true;
-        this.$tipsy = $('<div id="tooltipsy' + this.random + '" class="' + this.settings.className + '" style="position:absolute;z-index:2147483647;display:none">').appendTo('body');
+        this.$tipsy = $('<div id="tooltipsy' + this.random + '" class="tooltipsy ' + this.settings.className + '" style="position:absolute;z-index:2147483647;display:none">').appendTo('body');
         this.$tipsy.data('rootel', this.$el);
         this.insertContent();
     };
