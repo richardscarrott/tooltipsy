@@ -15,6 +15,7 @@
 * - showEvent: Set a custom event to bind the show function. Defaults to mouseenter
 * - hideEvent: Set a custom event to bind the show function. Defaults to mouseleave
 * - dynamicContent: Set to true if content should be evaluated upon every show
+* - setOption: function (name, value) update internal settings, e.g. offset
 * Method quick reference:
 * - $('element').data('tooltipsy').show(): Force the tooltip to show
 * - $('element').data('tooltipsy').hide(): Force the tooltip to hide
@@ -162,22 +163,36 @@
     };
 
     $.tooltipsy.prototype.hide = function (e) {
-        var base = this;
+
+        var base = this,
+            relatedTargetMatched = false;
 
         if (base.ready === false) {
             return;
         }
-
-        if (e && e.relatedTarget === this.$tipsy[0]) {
-            this.$tipsy.bind('mouseleave', function (e) {
-                if (e.relatedTarget === base.$el[0]) {
-                    return;
-                }
-                base.settings.hide(e, base.$tipsy.stop(true, true));
-            });
-            return;
+        
+        // ensure tooltip isn't closed if tipsy el is moused into.
+        if (this.settings.hideEvent == 'mouseleave') {
+            $(e && e.relatedTarget ? e.relatedTarget : null)
+                .closest(base.$tipsy)
+                    .addBack()
+                        .each(function () {
+                            if (this == base.$tipsy[0]) {
+                                relatedTargetMatched = true;
+                                base.$tipsy.one('mouseleave', function (e) {
+                                    if (e.relatedTarget === base.$el[0]) {
+                                        return;
+                                    }
+                                    base.settings.hide(e, base.$tipsy.stop(true, true));
+                                });
+                                return false;
+                            }
+                        });
         }
-        base.settings.hide(e, base.$tipsy.stop(true, true));
+
+        if (!relatedTargetMatched) {
+            base.settings.hide(e, base.$tipsy.stop(true, true));
+        }
     };
 
     $.tooltipsy.prototype.readify = function () {
@@ -204,6 +219,12 @@
             } while (el = el.offsetParent);
         }
         return { left: ol, top: ot };
+    };
+
+    $.tooltipsy.prototype.setOption = function (option, value) {
+        if (typeof option === 'string' && typeof value !== 'undefined') {
+            this.settings[option] = value;
+        }
     };
 
     $.tooltipsy.prototype.destroy = function () {
